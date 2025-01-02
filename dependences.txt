@@ -1,0 +1,30 @@
+sudo apt update
+sudo apt install python3 python3-pip python3-venv nmap -y
+
+
+mkdir flask_nmap
+cd flask_nmap
+python3 -m venv venv
+source venv/bin/activate
+pip install flask python-nmap
+
+nano app.py
+
+mkdir templates
+nano templates/index.html
+
+cd ~/nmap_project
+python3 -m venv venv
+source venv/bin/activate
+pip install flask python-nmap
+python3 app.py
+deactivate
+
+
+note -> source venv/bin/activate  activate env before running app
+
+
+
+
+
+
