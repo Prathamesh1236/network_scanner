@@ -1,0 +1,24 @@
+# Update the package lists
+sudo apt update
+
+# Install Python and virtual environment packages
+sudo apt install python3 python3-venv -y
+
+# Create a directory for your Flask project
+mkdir flask_nmap
+cd flask_nmap
+
+# Set up a virtual environment
+python3 -m venv venv
+
+# Activate the virtual environment
+source venv/bin/activate
+
+# Install pip within the virtual environment
+pip install --upgrade pip
+
+# Install Flask and the python-nmap library within the virtual environment
+pip install flask python-nmap
+
+# Optionally, install nmap if not already installed
+sudo apt install nmap -y
