@@ -22,3 +22,7 @@ pip install flask python-nmap
 
 # Optionally, install nmap if not already installed
 sudo apt install nmap -y
+
+
+
+to run on aws docker run --privileged -p 5000:5000 scanner
