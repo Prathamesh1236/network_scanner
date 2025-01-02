@@ -1,17 +1,23 @@
-k<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nmap Scanner - By Prathamesh More</title>
     <style>
+        /* General Reset */
+        body, h1, h2, h3, p, form {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
             color: #212529;
             line-height: 1.6;
-            margin: 0;
-            padding: 0;
+            padding: 20px;
         }
 
         header {
@@ -19,104 +25,134 @@ k<!DOCTYPE html>
             color: #ffffff;
             padding: 20px;
             text-align: center;
+            border-radius: 10px;
         }
 
         header h1 {
-            margin: 0;
-            font-size: 2rem;
+            font-size: 2.5rem;
+            font-weight: 600;
         }
 
+        /* Container for content */
         .container {
-            max-width: 700px;
-            margin: 30px auto;
-            padding: 20px;
+            max-width: 900px;
+            margin: 40px auto;
             background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        /* About Me Section */
+        .about-me {
+            margin-bottom: 30px;
+            background-color: #f1f3f5;
+            padding: 20px;
+            border: 1px solid #ced4da;
             border-radius: 8px;
+            width: 100%;
+            font-size: 0.9rem;
+            color: #495057;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
+        .about-me h3 {
+            color: #343a40;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .about-me p {
+            margin-bottom: 10px;
+        }
+
+        /* Heading for the scan section */
         h2 {
             text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.75rem;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
             color: #495057;
         }
 
+        /* Input Fields and Button */
         label {
             font-size: 1rem;
             color: #495057;
+            font-weight: bold;
             display: block;
             margin-top: 15px;
         }
 
         input[type="text"], select {
             width: 100%;
-            padding: 10px;
-            margin-top: 5px;
+            padding: 12px;
+            margin-top: 8px;
             border: 1px solid #ced4da;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 1rem;
+            background-color: #f1f3f5;
+            color: #495057;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: #007bff;
+            outline: none;
         }
 
         button {
             width: 100%;
-            padding: 12px;
-            margin-top: 20px;
+            padding: 14px;
+            margin-top: 25px;
             background-color: #007bff;
             border: none;
             color: #ffffff;
-            font-size: 1rem;
-            border-radius: 4px;
+            font-size: 1.1rem;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         button:hover {
             background-color: #0056b3;
+            transform: translateY(-2px);
         }
 
-        .disclaimer {
-            font-size: 0.9rem;
-            color: #6c757d;
+        /* Disclaimer */
+        .highlighted-disclaimer {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #dc3545;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 25px;
+            background-color: #f8d7da;
+            padding: 15px;
+            border: 1px solid #f5c2c7;
+            border-radius: 8px;
         }
 
+        /* Scan Result Section */
         .scan-result {
             margin-top: 30px;
             padding: 20px;
             background-color: #f1f3f5;
             border: 1px solid #dee2e6;
-            border-radius: 6px;
+            border-radius: 8px;
             color: #212529;
             white-space: pre-wrap;
         }
 
-        .linkedin {
-            text-align: center;
-            margin-top: 30px;
-        }
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
 
-        .linkedin a {
-            text-decoration: none;
-            color: #0077b5;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            font-size: 1rem;
-            transition: color 0.3s ease;
+            header h1 {
+                font-size: 2rem;
+            }
         }
-
-        .linkedin a:hover {
-            color: #005582;
-        }
-
-        .linkedin img {
-            width: 24px;
-            height: 24px;
-            margin-right: 8px;
-        }
-
     </style>
 </head>
 <body>
@@ -125,6 +161,12 @@ k<!DOCTYPE html>
     </header>
 
     <div class="container">
+        <div class="about-me">
+            <h3>About Me</h3>
+            <p>I'm Prathamesh More, a developer passionate about cybersecurity and networking. This Nmap Scanner simplifies network analysis, and I plan to regularly update it with new features, including AI-driven results interpretation.</p>
+            <p>Stay tuned for updates!</p>
+        </div>
+
         <h2>Scan a Network</h2>
         <form method="POST">
             <label for="ip_address">Enter IP Address:</label>
@@ -143,9 +185,9 @@ k<!DOCTYPE html>
             <button type="submit">Start Scan</button>
         </form>
 
-        <p class="disclaimer">
-            Disclaimer: This Nmap scanner tool is currently in development. Use it responsibly and ensure you have proper authorization before scanning any network or system.
-        </p>
+        <div class="highlighted-disclaimer">
+            Disclaimer: This Nmap scanner tool is under development. Use it responsibly and ensure you have proper authorization before scanning any network or system.
+        </div>
 
         {% if result %}
             <div class="scan-result">
@@ -156,4 +198,3 @@ k<!DOCTYPE html>
     </div>
 </body>
 </html>
-
