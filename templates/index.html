@@ -1,110 +1,136 @@
-<!DOCTYPE html>
+k<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nmap Scanner - By Prathamesh More</title>
     <style>
-        /* Reset some default styles */
-        body, h1, h2, p, form {
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
             margin: 0;
             padding: 0;
         }
-        
-        /* Body style */
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f7fc;
-            color: #333;
-            line-height: 1.6;
+
+        header {
+            background-color: #343a40;
+            color: #ffffff;
             padding: 20px;
-        }
-
-        /* Header Style */
-        h1 {
             text-align: center;
-            color: #333;
-            margin-bottom: 20px;
         }
 
-        /* Form Container */
-        .form-container {
-            background-color: #fff;
-            padding: 30px;
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #ffffff;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: 0 auto;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        /* Form Title */
-        .form-container h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
+        h2 {
             text-align: center;
-            color: #444;
+            margin-bottom: 20px;
+            font-size: 1.75rem;
+            color: #495057;
         }
 
-        /* Form elements */
         label {
-            font-size: 16px;
-            margin-bottom: 8px;
-            display: inline-block;
-            color: #555;
+            font-size: 1rem;
+            color: #495057;
+            display: block;
+            margin-top: 15px;
         }
 
-        input[type="text"], select, button {
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
             width: 100%;
             padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-
-        /* Button Styles */
-        button {
-            background-color: #5cb85c;
-            color: white;
-            cursor: pointer;
+            margin-top: 20px;
+            background-color: #007bff;
             border: none;
+            color: #ffffff;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
             transition: background-color 0.3s ease;
         }
 
         button:hover {
-            background-color: #4cae4c;
+            background-color: #0056b3;
         }
 
-        /* Disclaimer Style */
         .disclaimer {
+            font-size: 0.9rem;
+            color: #6c757d;
             text-align: center;
-            font-size: 14px;
             margin-top: 20px;
-            color: #666;
         }
 
-        /* Scan result */
         .scan-result {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e9ecef;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f1f3f5;
+            border: 1px solid #dee2e6;
             border-radius: 6px;
-            border: 1px solid #ccc;
+            color: #212529;
             white-space: pre-wrap;
+        }
+
+        .linkedin {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .linkedin a {
+            text-decoration: none;
+            color: #0077b5;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .linkedin a:hover {
+            color: #005582;
+        }
+
+        .linkedin img {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
         }
 
     </style>
 </head>
 <body>
-    <h1>Nmap Scanner - By Prathamesh More</h1>
+    <header>
+        <h1>Nmap Scanner - By Prathamesh More</h1>
+    </header>
 
-    <div class="form-container">
+    <div class="container">
         <h2>Scan a Network</h2>
         <form method="POST">
-            <label for="ip_address">Enter IP Address: </label>
-            <input type="text" id="ip_address" name="ip_address" required><br>
+            <label for="ip_address">Enter IP Address:</label>
+            <input type="text" id="ip_address" name="ip_address" placeholder="e.g., 192.168.1.1" required>
 
-            <label for="scan_type">Choose Scan Type: </label>
+            <label for="scan_type">Choose Scan Type:</label>
             <select id="scan_type" name="scan_type">
                 <option value="-sn">Ping Scan (-sn)</option>
                 <option value="-sS">SYN Scan (-sS)</option>
@@ -112,21 +138,22 @@
                 <option value="-sV">Service Version Detection (-sV)</option>
                 <option value="-O">OS Detection (-O)</option>
                 <option value="-p">Specific Port Scan (-p)</option>
-            </select><br>
+            </select>
 
             <button type="submit">Start Scan</button>
         </form>
 
         <p class="disclaimer">
-            Disclaimer: This Nmap scanner tool is currently in development. Use it at your own risk. Running Nmap scans on networks or systems without proper authorization can have legal consequences.
+            Disclaimer: This Nmap scanner tool is currently in development. Use it responsibly and ensure you have proper authorization before scanning any network or system.
         </p>
-    </div>
 
-    {% if result %}
-        <div class="scan-result">
-            <h3>Scan Result:</h3>
-            <p>{{ result }}</p>
-        </div>
-    {% endif %}
+        {% if result %}
+            <div class="scan-result">
+                <h3>Scan Result:</h3>
+                <p>{{ result }}</p>
+            </div>
+        {% endif %}
+    </div>
 </body>
 </html>
+
