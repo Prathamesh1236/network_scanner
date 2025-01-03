@@ -26,3 +26,5 @@ sudo apt install nmap -y
 
 
 to run on aws docker run --privileged -p 5000:5000 scanner
+
+dont forget to add 5000 port to security group ec2
