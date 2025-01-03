@@ -24,7 +24,12 @@ pip install flask python-nmap
 sudo apt install nmap -y
 
 
-
-to run on aws docker run --privileged -p 5000:5000 scanner
+#########EC2##########
+STEPS:->
+1. sudo apt update
+2. sudo apt install docker.io -y
+3. sudo usermod -aG docker admin(aws user)
+4. docker build -t ___
+5. run on aws docker run --privileged -p 5000:5000 scanner
 
 dont forget to add 5000 port to security group ec2
