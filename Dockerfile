@@ -1,7 +1,7 @@
 FROM python:3.9-slim
 
 # Install required packages
-RUN apt update && apt install -y nmap libcap2-bin && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y sudo nmap libcap2-bin && rm -rf /var/lib/apt/lists/*
 
 # Set capabilities on the nmap binary
 RUN setcap cap_net_raw,cap_net_admin+eip $(which nmap)
