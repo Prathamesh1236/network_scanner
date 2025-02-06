@@ -9,6 +9,15 @@ pipeline {
     }
 
     stages {
+        stage('Clean Docker Images') {
+            steps {
+                script {
+                    echo "Cleaning up unused Docker images..."
+                    sh 'docker image prune -f' // Remove dangling images
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -45,5 +54,4 @@ pipeline {
         }
     }
 }
-
 
