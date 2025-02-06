@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'network_scanner' // Docker image name
-        DOCKER_REGISTRY = 'Prathamesh1236' // Docker Hub username
+        DOCKER_REGISTRY = 'prathamesh05' // Docker Hub username
         IMAGE_TAG = 'latest' // Image tag
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials' // Jenkins credentials ID for Docker Hub login
     }
