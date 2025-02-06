@@ -1,6 +1,6 @@
 # Configure AWS Provider
 provider "aws" {
-  region = "us-east-1"  # Change region if needed
+  region = "ap-south-1"  # Change region if needed
 }
 
 # Fetch latest Debian AMI
