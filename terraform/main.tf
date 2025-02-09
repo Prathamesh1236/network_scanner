@@ -1,74 +1,93 @@
-# Configure AWS Provider
-provider "aws" {
-  region = "ap-south-1"  # Change region if needed
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'network_scanner'  // Docker image name
+        DOCKER_REGISTRY = 'prathamesh05'  // Docker Hub username
+        IMAGE_TAG = 'latest'              // Image tag
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'  // Jenkins credentials ID for Docker Hub login
+        AWS_CREDENTIALS_ID = 'aws-credentials'  // Jenkins AWS credentials ID
+    }
+
+    stages {
+        stage('Clean Docker Images') {
+            steps {
+                script {
+                    echo "Cleaning up unused Docker images..."
+                    sh 'docker image prune -f' 
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo "Building Docker image..."
+                    docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}")
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    echo "Pushing Docker image to Docker Hub..."
+                    docker.withRegistry('', "${DOCKER_CREDENTIALS_ID}") {
+                        docker.image("${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}").push()
+                    }
+                }
+            }
+        }
+
+        stage('Terraform Init & Apply') {
+            steps {
+                script {
+                    echo "Initializing and applying Terraform..."
+                    sh '''
+                    cd terraform
+                    terraform init
+                    terraform apply -auto-approve
+                    '''
+                }
+            }
+        }
+
+        stage('Fetch EC2 IP') {
+            steps {
+                script {
+                    echo "Fetching EC2 public IP..."
+                    EC2_IP = sh(script: "terraform output -raw instance_ip", returnStdout: true).trim()
+                    echo "EC2 Public IP: ${EC2_IP}"
+                }
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                script {
+                    echo "Executing Ansible Playbook..."
+                    sh '''
+                    cd ansible
+                    ansible-playbook -i "${EC2_IP}," --private-key ~/webserver1_key.pem playbook.yml
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "Cleaning up workspace..."
+            cleanWs()
+        }
+
+        success {
+            echo "Pipeline completed successfully!"
+        }
+
+        failure {
+            echo "Pipeline failed."
+        }
+    }
 }
 
-# Fetch latest Debian AMI
-data "aws_ami" "latest_debian" {
-  most_recent = true
-  owners      = ["136693071363"]  # Official Debian AMI owner
-
-  filter {
-    name   = "name"
-    values = ["debian-*-amd64-*-*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-}
-
-# Security group allowing SSH and Flask app traffic
-resource "aws_security_group" "flask_sg" {
-  name        = "flask-app-sg"
-  description = "Allow SSH and Flask app HTTP traffic"
-
-  # SSH access
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # WARNING: Restrict to your IP in production!
-  }
-
-  # Flask app port (default: 5000)
-  ingress {
-    from_port   = 5000
-    to_port     = 5000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Open to public for demo purposes
-  }
-
-  # Allow all outbound traffic
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# EC2 instance with manual SSH key
-resource "aws_instance" "flask_app" {
-  ami           = data.aws_ami.latest_debian.id
-  instance_type = "t2.micro"
-  key_name      = "webserver1_key"  # MUST match your AWS key pair name!
-
-  # Attach custom security group
-  vpc_security_group_ids = [aws_security_group.flask_sg.id]
-
-  tags = {
-    Name = "FlaskAppInstance"
-  }
-}
-
-# Output public IP for SSH access
-output "instance_ip" {
-  value = aws_instance.flask_app.public_ip
-}
