@@ -8,7 +8,7 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
         TERRAFORM_INSTANCE = 'admin@13.235.77.188'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
-        WORK_DIR = '~/network_scanner'
+        WORK_DIR = '/home/admin/network_scanner'  // Full path
     }
 
     stages {
@@ -41,18 +41,22 @@ pipeline {
             }
         }
 
-        stage('Clone Terraform Repo') {
+        stage('Clone or Update Terraform Repo') {
             steps {
                 script {
-                    echo "Cloning Terraform repository on remote server..."
+                    echo "Cloning or updating Terraform repository on remote server..."
                     sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
-                    WORK_DIR=${WORK_DIR}
-                    if [ -d "\$WORK_DIR" ]; then
-                        cd \$WORK_DIR && git reset --hard && git pull origin master
+                    if [ -d "${WORK_DIR}/.git" ]; then
+                        echo "Repository already exists. Pulling latest changes..."
+                        cd ${WORK_DIR}
+                        git reset --hard
+                        git pull origin master
                     else
-                        git clone -b master ${TERRAFORM_REPO} \$WORK_DIR
+                        echo "Cloning repository..."
+                        rm -rf ${WORK_DIR}  # Remove if partially cloned
+                        git clone -b master ${TERRAFORM_REPO} ${WORK_DIR}
                     fi
 EOF
                     """
@@ -86,11 +90,11 @@ EOF
         }
 
         success {
-            echo "Pipeline completed successfully!"
+            echo " Pipeline completed successfully!"
         }
 
         failure {
-            echo "Pipeline failed. Check logs for details."
+            echo " Pipeline failed. Check logs for details."
         }
     }
 }
