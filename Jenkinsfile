@@ -9,7 +9,7 @@ pipeline {
         TERRAFORM_INSTANCE = 'admin@13.201.101.108'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
         WORK_DIR = '/home/admin/network_scanner'
-        ANSIBLE_PLAYBOOK = 'setup_server.yml'
+        ANSIBLE_PLAYBOOK = '/var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini/setup_server.yml'
     }
 
     stages {
@@ -89,7 +89,7 @@ EOF
             steps {
                 script {
                     sh """
-                    ansible-playbook -i ansible/inventory.ini ${ANSIBLE_PLAYBOOK}
+                    ansible-playbook -i /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini ${ANSIBLE_PLAYBOOK}
                     """
                 }
             }
