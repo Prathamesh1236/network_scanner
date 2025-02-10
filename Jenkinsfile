@@ -6,7 +6,7 @@ pipeline {
         DOCKER_REGISTRY = 'prathamesh05'
         IMAGE_TAG = 'latest'
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
-        TERRAFORM_INSTANCE = 'admin@3.110.183.212'
+        TERRAFORM_INSTANCE = 'admin@13.201.101.108'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
         WORK_DIR = '/home/admin/network_scanner'
         ANSIBLE_PLAYBOOK = 'setup_server.yml'
