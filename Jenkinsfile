@@ -74,14 +74,11 @@ EOF
             }
         }
 
-        stage('Setup Ansible on Terraform Instance') {
+        stage('Setup Ansible on Jenkins') {
             steps {
                 script {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
-                    set -e
                     sudo apt update && sudo apt install -y ansible
-EOF
                     """
                 }
             }
@@ -91,6 +88,7 @@ EOF
             steps {
                 script {
                     sh """
+                    mkdir -p ansible
                     echo "[servers]
                     terraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" > ansible/inventory.ini
                     """
@@ -98,15 +96,11 @@ EOF
             }
         }
 
-        stage('Run Ansible Playbook') {
+        stage('Run Ansible Playbook from Jenkins') {
             steps {
                 script {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
-                    set -e
-                    cd ${WORK_DIR}/ansible
-                    ansible-playbook -i inventory.ini ${ANSIBLE_PLAYBOOK}
-EOF
+                    ansible-playbook -i ansible/inventory.ini ${ANSIBLE_PLAYBOOK}
                     """
                 }
             }
@@ -115,7 +109,7 @@ EOF
 
     post {
         always {
-            // cleanWs()
+            // cleanWs()  // Disabled for debugging, uncomment if needed
         }
         success {
             echo "Pipeline completed successfully!"
