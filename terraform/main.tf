@@ -34,7 +34,7 @@ resource "aws_security_group" "flask_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["43.204.112.21/32"]  # Allow SSH only from your machine
+    cidr_blocks = ["3.110.176.168/32"]  # Allow SSH only from your machine
   }
 
   # Flask app port (5000) - Open for testing (Restrict in production)
