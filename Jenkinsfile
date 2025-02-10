@@ -43,17 +43,17 @@ pipeline {
         stage('Setup Terraform Instance') {
             steps {
                 script {
-                    echo "Connecting to Terraform instance and setting up environment..."
-                    sh '''
+                    echo "Setting up Terraform on remote instance..."
+                    sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                         sudo apt-get update
-                        sudo apt-get install -y gnupg
-                        wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-                        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+                        sudo apt-get install -y gnupg software-properties-common
+                        wget -O- https://apt.releases.hashicorp.com/gpg | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+                        echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
                         sudo apt-get update
                         sudo apt-get install -y terraform
                     EOF
-                    '''
+                    """
                 }
             }
         }
@@ -62,7 +62,7 @@ pipeline {
             steps {
                 script {
                     echo "Cloning Terraform repository..."
-                    sh '''
+                    sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                         if [ -d "~/network_scanner" ]; then
                             cd ~/network_scanner && git pull
@@ -70,7 +70,7 @@ pipeline {
                             git clone https://github.com/Prathamesh1236/network_scanner.git ~/network_scanner
                         fi
                     EOF
-                    '''
+                    """
                 }
             }
         }
@@ -79,27 +79,15 @@ pipeline {
             steps {
                 script {
                     echo "Initializing and applying Terraform..."
-                    sh '''
+                    sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                         cd ~/network_scanner/terraform
                         terraform init
                         terraform validate
                         terraform plan -out=tfplan
-                        terraform apply -auto-approve tfplan
+                        terraform apply -auto-approve
                     EOF
-                    '''
-                }
-            }
-        }
-
-        stage('Fetch EC2 IP') {
-            steps {
-                script {
-                    echo "Fetching EC2 public IP..."
-                    EC2_IP = sh(script: '''
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} "terraform output -raw instance_ip"
-                    ''', returnStdout: true).trim()
-                    echo "EC2 Public IP: ${EC2_IP}"
+                    """
                 }
             }
         }
