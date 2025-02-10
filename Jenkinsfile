@@ -108,9 +108,10 @@ EOF
     }
 
     post {
-        always {
-            // cleanWs()  // Disabled for debugging, uncomment if needed
+        /* always {
+             cleanWs()  // Disabled for debugging, uncomment if needed
         }
+        */
         success {
             echo "Pipeline completed successfully!"
         }
