@@ -10,6 +10,7 @@ pipeline {
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
         WORK_DIR = '/home/admin/network_scanner'
         ANSIBLE_PLAYBOOK = '/var/lib/jenkins/workspace/network_scanner/ansible/setup_server.yml'
+        SECURITY_GROUP_NAME = 'flask-app-sg'
     }
 
     stages {
@@ -45,15 +46,22 @@ EOF
             }
         }
 
-        stage('Terraform Destroy (Cleanup)') {
+        stage('Delete Existing Security Group') {
             steps {
                 script {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -ex
-                    cd ${WORK_DIR}/terraform
-                    terraform init
-                    terraform destroy -auto-approve || echo "Terraform destroy failed, but continuing..."
+                    # Get the Security Group ID
+                    SG_ID=\$(aws ec2 describe-security-groups --filters Name=group-name,Values=${SECURITY_GROUP_NAME} --query "SecurityGroups[0].GroupId" --output text)
+
+                    # If Security Group exists, delete it
+                    if [ "\$SG_ID" != "None" ]; then
+                        echo "Security Group found: \$SG_ID. Deleting..."
+                        aws ec2 delete-security-group --group-id \$SG_ID
+                    else
+                        echo "No existing Security Group found."
+                    fi
 EOF
                     """
                 }
@@ -84,7 +92,7 @@ EOF
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
                     cd ${WORK_DIR}/terraform
-                    terraform output -raw instance_ip || echo "Error fetching instance IP"
+                    terraform output -raw instance_ip
 EOF
                     """, returnStdout: true).trim()
                     echo "Terraform-created instance IP: ${env.INSTANCE_IP}"
