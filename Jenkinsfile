@@ -9,7 +9,7 @@ pipeline {
         TERRAFORM_INSTANCE = 'admin@13.201.101.108'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
         WORK_DIR = '/home/admin/network_scanner'
-        ANSIBLE_PLAYBOOK = '/var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini/setup_server.yml'
+        ANSIBLE_PLAYBOOK = '/var/lib/jenkins/workspace/network_scanner/ansible/setup_server.yml'
     }
 
     stages {
@@ -37,7 +37,7 @@ pipeline {
                 script {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
-                    set -e
+                    set -ex
                     [ -d "${WORK_DIR}/.git" ] && (cd ${WORK_DIR} && git reset --hard && git pull origin master) || (rm -rf ${WORK_DIR} && git clone -b master ${TERRAFORM_REPO} ${WORK_DIR})
 EOF
                     """
@@ -50,9 +50,12 @@ EOF
                 script {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
-                    set -e
+                    set -ex
                     cd ${WORK_DIR}/terraform
-                    terraform init && terraform validate && terraform plan -out=tfplan && terraform apply -auto-approve || true
+                    terraform init
+                    terraform validate
+                    terraform plan -out=tfplan
+                    terraform apply -auto-approve
 EOF
                     """
                 }
@@ -78,8 +81,22 @@ EOF
             steps {
                 script {
                     sh """
-                    echo "[servers]
-                    terraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
+                    echo -e "[servers]\\nterraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
+                    cat /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
+                    """
+                }
+            }
+        }
+
+        stage('Verify Playbook Exists') {
+            steps {
+                script {
+                    sh """
+                    if [ ! -f ${ANSIBLE_PLAYBOOK} ]; then
+                        echo "ERROR: Playbook ${ANSIBLE_PLAYBOOK} not found!"
+                        exit 1
+                    fi
+                    ls -l ${ANSIBLE_PLAYBOOK}
                     """
                 }
             }
