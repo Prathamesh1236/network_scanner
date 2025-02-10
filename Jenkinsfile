@@ -46,29 +46,7 @@ EOF
             }
         }
 
-        stage('Delete Existing Security Group') {
-            steps {
-                script {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
-                    set -ex
-                    # Get the Security Group ID
-                    SG_ID=\$(aws ec2 describe-security-groups --filters Name=group-name,Values=${SECURITY_GROUP_NAME} --query "SecurityGroups[0].GroupId" --output text)
-
-                    # If Security Group exists, delete it
-                    if [ "\$SG_ID" != "None" ]; then
-                        echo "Security Group found: \$SG_ID. Deleting..."
-                        aws ec2 delete-security-group --group-id \$SG_ID
-                    else
-                        echo "No existing Security Group found."
-                    fi
-EOF
-                    """
-                }
-            }
-        }
-
-        stage('Terraform Apply') {
+        stage('Terraform Destroy & Apply') {
             steps {
                 script {
                     sh """
@@ -76,9 +54,10 @@ EOF
                     set -ex
                     cd ${WORK_DIR}/terraform
                     terraform init
+                    terraform destroy -auto-approve  # First, destroy existing resources
                     terraform validate
                     terraform plan -out=tfplan
-                    terraform apply -auto-approve 
+                    terraform apply -auto-approve    # Recreate resources
 EOF
                     """
                 }
@@ -104,7 +83,7 @@ EOF
             steps {
                 script {
                     sh """
-                    echo -e "[servers]\\nterraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
+                    echo -e "[servers]\nterraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
                     cat /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
                     """
                 }
@@ -145,4 +124,3 @@ EOF
         }
     }
 }
-
