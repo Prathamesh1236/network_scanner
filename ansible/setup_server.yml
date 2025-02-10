@@ -1,1 +1,45 @@
+---
+- name: Setup and Deploy Network Scanner Application
+  hosts: all
+  become: yes
+  tasks:
+
+    - name: Update and upgrade packages
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Install required packages
+      apt:
+        name: 
+          - docker.io
+          - docker-compose
+        state: present
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to Docker group (if needed)
+      user:
+        name: admin
+        groups: docker
+        append: yes
+
+    - name: Pull latest Docker image
+      command: docker pull prathamesh05/network_scanner:latest
+
+    - name: Run Docker container
+      command: >
+        docker run -d --name network_scanner
+        -p 8080:8080 prathamesh05/network_scanner:latest
+
+    - name: Verify container is running
+      command: docker ps
+      register: container_status
+
+    - debug:
+        var: container_status.stdout_lines
 
