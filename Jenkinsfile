@@ -9,7 +9,7 @@ pipeline {
         TERRAFORM_INSTANCE = 'admin@3.110.183.212'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
         WORK_DIR = '/home/admin/network_scanner'
-        ANSIBLE_PLAYBOOK = 'deploy.yml'  // Your playbook filename
+        ANSIBLE_PLAYBOOK = 'setup_server.yml'  // Updated Ansible playbook name
     }
 
     stages {
@@ -116,18 +116,6 @@ EOF
             }
         }
 
-        stage('Copy Ansible Playbook to Terraform Instance') {
-            steps {
-                script {
-                    echo "Copying Ansible playbook to the Terraform instance..."
-                    sh """
-                    scp -o StrictHostKeyChecking=no ansible/${ANSIBLE_PLAYBOOK} ${TERRAFORM_INSTANCE}:${WORK_DIR}/ansible/
-                    scp -o StrictHostKeyChecking=no ansible/inventory.ini ${TERRAFORM_INSTANCE}:${WORK_DIR}/ansible/
-                    """
-                }
-            }
-        }
-
         stage('Run Ansible Playbook') {
             steps {
                 script {
@@ -136,7 +124,7 @@ EOF
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
                     cd ${WORK_DIR}/ansible
-                    ansible-playbook -i inventory.ini ${ANSIBLE_PLAYBOOK}
+                    ansible-playbook -i inventory ${ANSIBLE_PLAYBOOK}
 EOF
                     """
                 }
@@ -159,5 +147,6 @@ EOF
         }
     }
 }
+
 
 
