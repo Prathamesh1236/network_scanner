@@ -21,7 +21,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Build & Push Docker Image') {
             steps {
                 script {
@@ -32,7 +32,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Clone or Update Terraform Repo') {
             steps {
                 script {
@@ -45,7 +45,7 @@ EOF
                 }
             }
         }
-
+        
         stage('Terraform Destroy & Apply') {
             steps {
                 script {
@@ -63,7 +63,7 @@ EOF
                 }
             }
         }
-
+        
         stage('Fetch Terraform Instance IP') {
             steps {
                 script {
@@ -78,21 +78,20 @@ EOF
                 }
             }
         }
-
+        
         stage('Generate Ansible Inventory') {
             steps {
                 script {
-                    // Generate the inventory file
-                    sh """
-                    echo -e "[servers]\\nterraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
-                    # Use sed to remove any DOS-style carriage returns instead of dos2unix\n"
-                    sed -i 's/\\r$//' /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
-                    cat /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
-                    """
+                    def invFile = "/var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini"
+                    // Use a single-line sh command so that Groovy expands env.INSTANCE_IP correctly
+                    sh "echo -e \"[servers]\\nterraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa\" > ${invFile}"
+                    // Use sed instead of dos2unix to remove any carriage return characters
+                    sh "sed -i 's/\\r$//' ${invFile}"
+                    sh "cat ${invFile}"
                 }
             }
         }
-
+        
         stage('Verify Playbook Exists') {
             steps {
                 script {
@@ -106,18 +105,16 @@ EOF
                 }
             }
         }
-
+        
         stage('Run Ansible Playbook from Jenkins') {
             steps {
                 script {
-                    sh """
-                    ansible-playbook -i /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini ${ANSIBLE_PLAYBOOK}
-                    """
+                    sh "ansible-playbook -i /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini ${ANSIBLE_PLAYBOOK}"
                 }
             }
         }
     }
-
+    
     post {
         success {
             echo "Pipeline completed successfully!"
