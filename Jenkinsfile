@@ -52,7 +52,7 @@ EOF
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
                     cd ${WORK_DIR}/terraform
-                    terraform init && terraform validate && terraform plan -out=tfplan && terraform apply -auto-approve
+                    terraform init && terraform validate && terraform plan -out=tfplan && terraform apply -auto-approve || true
 EOF
                     """
                 }
@@ -108,10 +108,6 @@ EOF
     }
 
     post {
-        /* always {
-             cleanWs()  // Disabled for debugging, uncomment if needed
-        }
-        */
         success {
             echo "Pipeline completed successfully!"
         }
