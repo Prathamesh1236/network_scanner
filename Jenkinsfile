@@ -115,7 +115,7 @@ EOF
 
     post {
         always {
-            cleanWs()
+            // cleanWs()
         }
         success {
             echo "Pipeline completed successfully!"
