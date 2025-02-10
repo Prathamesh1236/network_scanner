@@ -8,6 +8,7 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
         TERRAFORM_INSTANCE = 'admin@13.235.77.188'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
+        WORK_DIR = '~/network_scanner'
     }
 
     stages {
@@ -47,13 +48,13 @@ pipeline {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
-                    WORK_DIR=~/network_scanner
+                    WORK_DIR=${WORK_DIR}
                     if [ -d "\$WORK_DIR" ]; then
                         cd \$WORK_DIR && git reset --hard && git pull origin master
                     else
                         git clone -b master ${TERRAFORM_REPO} \$WORK_DIR
                     fi
-                    EOF
+EOF
                     """
                 }
             }
@@ -66,13 +67,12 @@ pipeline {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
-                    WORK_DIR=~/network_scanner
-                    cd \$WORK_DIR/terraform
+                    cd ${WORK_DIR}/terraform
                     terraform init
                     terraform validate
                     terraform plan -out=tfplan
                     terraform apply -auto-approve
-                    EOF
+EOF
                     """
                 }
             }
@@ -86,12 +86,13 @@ pipeline {
         }
 
         success {
-            echo " Pipeline completed successfully!"
+            echo "Pipeline completed successfully!"
         }
 
         failure {
-            echo " Pipeline failed. Check logs for details."
+            echo "Pipeline failed. Check logs for details."
         }
     }
 }
+
 
