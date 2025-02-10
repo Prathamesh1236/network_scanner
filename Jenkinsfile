@@ -45,11 +45,11 @@ pipeline {
                 script {
                     echo "Setting up Terraform on remote instance..."
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                    ssh -o StrictHostKeyChecking=no \${TERRAFORM_INSTANCE} <<EOF
                         sudo apt-get update
                         sudo apt-get install -y gnupg software-properties-common
                         wget -O- https://apt.releases.hashicorp.com/gpg | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
-                        echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+                        echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com \$(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
                         sudo apt-get update
                         sudo apt-get install -y terraform
                     EOF
@@ -63,7 +63,7 @@ pipeline {
                 script {
                     echo "Cloning Terraform repository..."
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                    ssh -o StrictHostKeyChecking=no \${TERRAFORM_INSTANCE} <<EOF
                         if [ -d "~/network_scanner" ]; then
                             cd ~/network_scanner && git pull
                         else
@@ -80,7 +80,7 @@ pipeline {
                 script {
                     echo "Initializing and applying Terraform..."
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                    ssh -o StrictHostKeyChecking=no \${TERRAFORM_INSTANCE} <<EOF
                         cd ~/network_scanner/terraform
                         terraform init
                         terraform validate
@@ -108,4 +108,5 @@ pipeline {
         }
     }
 }
+
 
