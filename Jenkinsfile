@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'network_scanner'  // Docker image name
-        DOCKER_REGISTRY = 'prathamesh05'  // Docker Hub username
-        IMAGE_TAG = 'latest'              // Image tag
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'  // Jenkins credentials ID for Docker Hub login
-        AWS_CREDENTIALS_ID = 'aws-credentials'  // Jenkins AWS credentials ID
+        DOCKER_IMAGE = 'network_scanner'
+        DOCKER_REGISTRY = 'prathamesh05'
+        IMAGE_TAG = 'latest'
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+        AWS_CREDENTIALS_ID = 'aws-credentials'
     }
 
     stages {
@@ -46,7 +46,7 @@ pipeline {
                     sh '''
                     cd terraform
                     terraform init
-                    terraform apply -auto-approve
+                    terraform apply -auto-approve -input=false
                     '''
                 }
             }
@@ -58,18 +58,6 @@ pipeline {
                     echo "Fetching EC2 public IP..."
                     EC2_IP = sh(script: "terraform output -raw instance_ip", returnStdout: true).trim()
                     echo "EC2 Public IP: ${EC2_IP}"
-                }
-            }
-        }
-
-        stage('Run Ansible Playbook') {
-            steps {
-                script {
-                    echo "Executing Ansible Playbook..."
-                    sh '''
-                    cd ansible
-                    ansible-playbook -i "${EC2_IP}," --private-key ~/webserver1_key.pem playbook.yml
-                    '''
                 }
             }
         }
