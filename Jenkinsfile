@@ -45,6 +45,21 @@ EOF
             }
         }
 
+        stage('Terraform Destroy (Cleanup)') {
+            steps {
+                script {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                    set -ex
+                    cd ${WORK_DIR}/terraform
+                    terraform init
+                    terraform destroy -auto-approve || echo "Terraform destroy failed, but continuing..."
+EOF
+                    """
+                }
+            }
+        }
+
         stage('Terraform Apply') {
             steps {
                 script {
@@ -69,7 +84,7 @@ EOF
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
                     cd ${WORK_DIR}/terraform
-                    terraform output -raw instance_ip
+                    terraform output -raw instance_ip || echo "Error fetching instance IP"
 EOF
                     """, returnStdout: true).trim()
                     echo "Terraform-created instance IP: ${env.INSTANCE_IP}"
