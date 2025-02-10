@@ -39,14 +39,31 @@ pipeline {
             }
         }
 
-        stage('Terraform Init & Apply') {
+        stage('Terraform Init & Apply with Debugging') {
             steps {
                 script {
-                    echo "Initializing and applying Terraform..."
+                    echo "Initializing and applying Terraform with debugging..."
                     sh '''
+                    set -e  # Stop execution if any command fails
+                    export TF_LOG=DEBUG  # Enable detailed logging
                     cd terraform
-                    terraform init
-                    terraform apply -auto-approve -input=false
+                    echo "Initializing Terraform..."
+                    terraform init 2>&1 | tee terraform-init.log
+                    
+                    echo "Validating Terraform configuration..."
+                    terraform validate 2>&1 | tee terraform-validate.log
+
+                    echo "Planning Terraform changes..."
+                    terraform plan -out=tfplan 2>&1 | tee terraform-plan.log
+
+                    echo "Applying Terraform changes..."
+                    terraform apply -auto-approve -input=false tfplan 2>&1 | tee terraform-apply.log
+
+                    echo "Displaying Terraform state..."
+                    terraform show 2>&1 | tee terraform-show.log
+
+                    echo "Checking Terraform output values..."
+                    terraform output 2>&1 | tee terraform-output.log
                     '''
                 }
             }
@@ -74,7 +91,8 @@ pipeline {
         }
 
         failure {
-            echo "Pipeline failed."
+            echo "Pipeline failed. Check logs for details."
         }
     }
 }
+
