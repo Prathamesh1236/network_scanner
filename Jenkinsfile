@@ -7,6 +7,7 @@ pipeline {
         IMAGE_TAG = 'latest'
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
         AWS_CREDENTIALS_ID = 'aws-credentials'
+        TERRAFORM_INSTANCE = 'admin@13.235.77.188'  // Terraform instance
     }
 
     stages {
@@ -14,7 +15,7 @@ pipeline {
             steps {
                 script {
                     echo "Cleaning up unused Docker images..."
-                    sh 'docker image prune -f' 
+                    sh 'docker image prune -f'
                 }
             }
         }
@@ -39,31 +40,53 @@ pipeline {
             }
         }
 
-        stage('Terraform Init & Apply with Debugging') {
+        stage('Setup Terraform Instance') {
             steps {
                 script {
-                    echo "Initializing and applying Terraform with debugging..."
+                    echo "Connecting to Terraform instance and setting up environment..."
                     sh '''
-                    set -e  # Stop execution if any command fails
-                    export TF_LOG=DEBUG  # Enable detailed logging
-                    cd terraform
-                    echo "Initializing Terraform..."
-                    terraform init 2>&1 | tee terraform-init.log
-                    
-                    echo "Validating Terraform configuration..."
-                    terraform validate 2>&1 | tee terraform-validate.log
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                        sudo apt-get update
+                        sudo apt-get install -y gnupg
+                        wget -O - https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+                        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+                        sudo apt-get update
+                        sudo apt-get install -y terraform
+                    EOF
+                    '''
+                }
+            }
+        }
 
-                    echo "Planning Terraform changes..."
-                    terraform plan -out=tfplan 2>&1 | tee terraform-plan.log
+        stage('Clone Terraform Repo') {
+            steps {
+                script {
+                    echo "Cloning Terraform repository..."
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                        if [ -d "~/network_scanner" ]; then
+                            cd ~/network_scanner && git pull
+                        else
+                            git clone https://github.com/Prathamesh1236/network_scanner.git ~/network_scanner
+                        fi
+                    EOF
+                    '''
+                }
+            }
+        }
 
-                    echo "Applying Terraform changes..."
-                    terraform apply -auto-approve -input=false tfplan 2>&1 | tee terraform-apply.log
-
-                    echo "Displaying Terraform state..."
-                    terraform show 2>&1 | tee terraform-show.log
-
-                    echo "Checking Terraform output values..."
-                    terraform output 2>&1 | tee terraform-output.log
+        stage('Terraform Init & Apply') {
+            steps {
+                script {
+                    echo "Initializing and applying Terraform..."
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                        cd ~/network_scanner/terraform
+                        terraform init
+                        terraform validate
+                        terraform plan -out=tfplan
+                        terraform apply -auto-approve tfplan
+                    EOF
                     '''
                 }
             }
@@ -73,7 +96,9 @@ pipeline {
             steps {
                 script {
                     echo "Fetching EC2 public IP..."
-                    EC2_IP = sh(script: "terraform output -raw instance_ip", returnStdout: true).trim()
+                    EC2_IP = sh(script: '''
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} "terraform output -raw instance_ip"
+                    ''', returnStdout: true).trim()
                     echo "EC2 Public IP: ${EC2_IP}"
                 }
             }
