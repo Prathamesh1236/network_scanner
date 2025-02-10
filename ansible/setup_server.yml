@@ -34,7 +34,7 @@
     - name: Run Docker container
       command: >
         docker run -d --name network_scanner
-        -p 8080:8080 prathamesh05/network_scanner:latest
+        -p 5000:5000 prathamesh05/network_scanner:latest
 
     - name: Verify container is running
       command: docker ps
