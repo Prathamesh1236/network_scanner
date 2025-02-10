@@ -21,7 +21,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Build & Push Docker Image') {
             steps {
                 script {
@@ -32,7 +32,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Clone or Update Terraform Repo') {
             steps {
                 script {
@@ -45,7 +45,7 @@ EOF
                 }
             }
         }
-        
+
         stage('Terraform Destroy & Apply') {
             steps {
                 script {
@@ -63,7 +63,7 @@ EOF
                 }
             }
         }
-        
+
         stage('Fetch Terraform Instance IP') {
             steps {
                 script {
@@ -78,20 +78,20 @@ EOF
                 }
             }
         }
-        
+
         stage('Generate Ansible Inventory') {
             steps {
                 script {
                     def invFile = "/var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini"
-                    // Use a single-line sh command so that Groovy expands env.INSTANCE_IP correctly
+                    // Generate the inventory file in one line to ensure proper interpolation.
                     sh "echo -e \"[servers]\\nterraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa\" > ${invFile}"
-                    // Use sed instead of dos2unix to remove any carriage return characters
-                    sh "sed -i 's/\\r$//' ${invFile}"
+                    // Use sed to remove DOS-style carriage returns; note the dollar sign is now escaped.
+                    sh "sed -i 's/\\r\\$//' ${invFile}"
                     sh "cat ${invFile}"
                 }
             }
         }
-        
+
         stage('Verify Playbook Exists') {
             steps {
                 script {
@@ -105,7 +105,7 @@ EOF
                 }
             }
         }
-        
+
         stage('Run Ansible Playbook from Jenkins') {
             steps {
                 script {
@@ -114,7 +114,7 @@ EOF
             }
         }
     }
-    
+
     post {
         success {
             echo "Pipeline completed successfully!"
@@ -124,4 +124,3 @@ EOF
         }
     }
 }
-
