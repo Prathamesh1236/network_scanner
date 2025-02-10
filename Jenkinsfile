@@ -6,7 +6,7 @@ pipeline {
         DOCKER_REGISTRY = 'prathamesh05'
         IMAGE_TAG = 'latest'
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
-        TERRAFORM_INSTANCE = 'admin@13.235.77.188'  // Terraform server
+        TERRAFORM_INSTANCE = 'admin@13.235.77.188'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
     }
 
@@ -45,14 +45,14 @@ pipeline {
                 script {
                     echo "Cloning Terraform repository on remote server..."
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} << 'EOF'
-                        set -e
-                        WORK_DIR=~/network_scanner
-                        if [ -d "\$WORK_DIR" ]; then
-                            cd \$WORK_DIR && git reset --hard && git pull origin master
-                        else
-                            git clone -b master ${TERRAFORM_REPO} \$WORK_DIR
-                        fi
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                    set -e
+                    WORK_DIR=~/network_scanner
+                    if [ -d "\$WORK_DIR" ]; then
+                        cd \$WORK_DIR && git reset --hard && git pull origin master
+                    else
+                        git clone -b master ${TERRAFORM_REPO} \$WORK_DIR
+                    fi
                     EOF
                     """
                 }
@@ -64,14 +64,14 @@ pipeline {
                 script {
                     echo "Initializing and applying Terraform..."
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} << 'EOF'
-                        set -e
-                        WORK_DIR=~/network_scanner
-                        cd \$WORK_DIR/terraform
-                        terraform init
-                        terraform validate
-                        terraform plan -out=tfplan
-                        terraform apply -auto-approve
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                    set -e
+                    WORK_DIR=~/network_scanner
+                    cd \$WORK_DIR/terraform
+                    terraform init
+                    terraform validate
+                    terraform plan -out=tfplan
+                    terraform apply -auto-approve
                     EOF
                     """
                 }
