@@ -78,7 +78,6 @@ EOF
             steps {
                 script {
                     sh """
-                    mkdir -p ansible
                     echo "[servers]
                     terraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
                     """
