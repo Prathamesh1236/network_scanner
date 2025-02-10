@@ -10,14 +10,13 @@ pipeline {
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
         WORK_DIR = '/home/admin/network_scanner'
         ANSIBLE_PLAYBOOK = 'setup_server.yml'
+        INVENTORY_FILE = 'ansible/inventory.ini'
     }
 
     stages {
         stage('Clean Docker Images') {
             steps {
-                script {
-                    sh 'docker image prune -af'
-                }
+                sh 'docker image prune -af'
             }
         }
 
@@ -34,27 +33,39 @@ pipeline {
 
         stage('Clone or Update Terraform Repo') {
             steps {
-                script {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
-                    set -e
-                    [ -d "${WORK_DIR}/.git" ] && (cd ${WORK_DIR} && git reset --hard && git pull origin master) || (rm -rf ${WORK_DIR} && git clone -b master ${TERRAFORM_REPO} ${WORK_DIR})
+                sh """
+                ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                set -e
+                [ -d "${WORK_DIR}/.git" ] && (cd ${WORK_DIR} && git reset --hard && git pull origin master) || git clone -b master ${TERRAFORM_REPO} ${WORK_DIR}
 EOF
-                    """
-                }
+                """
             }
         }
 
         stage('Terraform Apply') {
             steps {
                 script {
-                    sh """
+                    def terraformChanges = sh(script: """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
                     cd ${WORK_DIR}/terraform
-                    terraform init && terraform validate && terraform plan -out=tfplan && terraform apply -auto-approve
+                    terraform init
+                    terraform validate
+                    terraform plan -detailed-exitcode -out=tfplan || [ $? -eq 2 ]
 EOF
-                    """
+                    """, returnStatus: true)
+
+                    if (terraformChanges == 2) {
+                        sh """
+                        ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                        set -e
+                        cd ${WORK_DIR}/terraform
+                        terraform apply -auto-approve
+EOF
+                        """
+                    } else {
+                        echo "No Terraform changes detected, skipping apply."
+                    }
                 }
             }
         }
@@ -76,25 +87,21 @@ EOF
 
         stage('Setup Ansible on Terraform Instance') {
             steps {
-                script {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
-                    set -e
-                    sudo apt update && sudo apt install -y ansible
+                sh """
+                ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                set -e
+                sudo apt update && sudo apt install -y ansible
 EOF
-                    """
-                }
+                """
             }
         }
 
-        stage('Generate & Copy Ansible Inventory') {
+        stage('Generate Ansible Inventory') {
             steps {
                 script {
-                    sh """
-                    echo "[servers]
-                    terraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" > ansible/inventory.ini
-
-                    scp -o StrictHostKeyChecking=no ansible/inventory.ini ${TERRAFORM_INSTANCE}:${WORK_DIR}/ansible/
+                    writeFile file: "${INVENTORY_FILE}", text: """
+                    [servers]
+                    terraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa
                     """
                 }
             }
@@ -102,15 +109,7 @@ EOF
 
         stage('Run Ansible Playbook') {
             steps {
-                script {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
-                    set -e
-                    cd ${WORK_DIR}/ansible
-                    ansible-playbook -i inventory.ini ${ANSIBLE_PLAYBOOK}
-EOF
-                    """
-                }
+                sh "ansible-playbook -i ${INVENTORY_FILE} ${ANSIBLE_PLAYBOOK}"
             }
         }
     }
