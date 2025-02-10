@@ -83,6 +83,9 @@ EOF
             steps {
                 script {
                     sh """
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                    sudo apt-get update && sudo apt-get install -y dos2unix
+EOF
                     echo -e "[servers]\nterraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
                     dos2unix /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini  # Convert line endings (optional)
                     cat /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
