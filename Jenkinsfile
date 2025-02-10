@@ -81,6 +81,38 @@ EOF
                 }
             }
         }
+
+        stage('Fetch Terraform Instance IP') {
+            steps {
+                script {
+                    echo "Fetching the instance IP from Terraform..."
+                    def instanceIP = sh(script: """
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                    set -e
+                    cd ${WORK_DIR}/terraform
+                    terraform output -raw instance_ip
+EOF
+                    """, returnStdout: true).trim()
+
+                    echo "Instance IP: ${instanceIP}"
+
+                    // Write instance IP to inventory file
+                    writeFile file: 'inventory.ini', text: """
+                    [web]
+                    ${instanceIP} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa
+                    """
+                }
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                script {
+                    echo "Running Ansible Playbook..."
+                    sh 'ansible-playbook -i inventory.ini playbook.yml'
+                }
+            }
+        }
     }
 
     post {
@@ -90,11 +122,11 @@ EOF
         }
 
         success {
-            echo " Pipeline completed successfully!"
+            echo "Pipeline completed successfully!"
         }
 
         failure {
-            echo " Pipeline failed. Check logs for details."
+            echo "Pipeline failed. Check logs for details."
         }
     }
 }
