@@ -6,9 +6,10 @@ pipeline {
         DOCKER_REGISTRY = 'prathamesh05'
         IMAGE_TAG = 'latest'
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
-        TERRAFORM_INSTANCE = 'admin@3.110.183.103'
+        TERRAFORM_INSTANCE = 'admin@3.110.183.212'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
-        WORK_DIR = '/home/admin/network_scanner'  // Full path
+        WORK_DIR = '/home/admin/network_scanner'
+        ANSIBLE_PLAYBOOK = 'deploy.yml'  // Your playbook filename
     }
 
     stages {
@@ -55,7 +56,7 @@ pipeline {
                         git pull origin master
                     else
                         echo "Cloning repository..."
-                        rm -rf ${WORK_DIR}  # Remove if partially cloned
+                        rm -rf ${WORK_DIR}
                         git clone -b master ${TERRAFORM_REPO} ${WORK_DIR}
                     fi
 EOF
@@ -95,6 +96,49 @@ EOF
                     """, returnStdout: true).trim()
 
                     echo "Terraform-created instance IP: ${instanceIP}"
+                    env.INSTANCE_IP = instanceIP  // Store IP for Ansible use
+                }
+            }
+        }
+
+        stage('Setup Ansible on Terraform Instance') {
+            steps {
+                script {
+                    echo "Installing Ansible on the Terraform instance..."
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                    set -e
+                    sudo apt update
+                    sudo apt install -y ansible
+EOF
+                    """
+                }
+            }
+        }
+
+        stage('Copy Ansible Playbook to Terraform Instance') {
+            steps {
+                script {
+                    echo "Copying Ansible playbook to the Terraform instance..."
+                    sh """
+                    scp -o StrictHostKeyChecking=no ansible/${ANSIBLE_PLAYBOOK} ${TERRAFORM_INSTANCE}:${WORK_DIR}/ansible/
+                    scp -o StrictHostKeyChecking=no ansible/inventory.ini ${TERRAFORM_INSTANCE}:${WORK_DIR}/ansible/
+                    """
+                }
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                script {
+                    echo "Running Ansible playbook..."
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                    set -e
+                    cd ${WORK_DIR}/ansible
+                    ansible-playbook -i inventory.ini ${ANSIBLE_PLAYBOOK}
+EOF
+                    """
                 }
             }
         }
