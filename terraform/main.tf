@@ -29,12 +29,12 @@ resource "aws_security_group" "flask_sg" {
   name        = "flask-app-sg"
   description = "Allow SSH and Flask app HTTP traffic"
 
-  # Restrict SSH to YOUR public IP (Replace YOUR_IP with actual IP)
+  # Restrict SSH to YOUR public IP (Replace 43.204.112.21 with actual IP)
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["YOUR_IP/32"]  # Change YOUR_IP to your actual public IP
+    cidr_blocks = ["43.204.112.21/32"]  # Allow SSH only from your machine
   }
 
   # Flask app port (5000) - Open for testing (Restrict in production)
@@ -72,3 +72,4 @@ resource "aws_instance" "flask_app" {
 output "instance_ip" {
   value = aws_instance.flask_app.public_ip
 }
+
