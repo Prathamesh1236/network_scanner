@@ -9,34 +9,24 @@ pipeline {
         TERRAFORM_INSTANCE = 'admin@3.110.183.212'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
         WORK_DIR = '/home/admin/network_scanner'
-        ANSIBLE_PLAYBOOK = 'setup_server.yml'  // Updated Ansible playbook name
+        ANSIBLE_PLAYBOOK = 'setup_server.yml'
     }
 
     stages {
         stage('Clean Docker Images') {
             steps {
                 script {
-                    echo "Cleaning up unused Docker images..."
                     sh 'docker image prune -af'
                 }
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build & Push Docker Image') {
             steps {
                 script {
-                    echo "Building Docker image..."
-                    docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}")
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    echo "Pushing Docker image to Docker Hub..."
+                    def image = docker.build("${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}")
                     docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
-                        docker.image("${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${IMAGE_TAG}").push()
+                        image.push()
                     }
                 }
             }
@@ -45,38 +35,24 @@ pipeline {
         stage('Clone or Update Terraform Repo') {
             steps {
                 script {
-                    echo "Cloning or updating Terraform repository on remote server..."
                     sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
-                    if [ -d "${WORK_DIR}/.git" ]; then
-                        echo "Repository already exists. Pulling latest changes..."
-                        cd ${WORK_DIR}
-                        git reset --hard
-                        git pull origin master
-                    else
-                        echo "Cloning repository..."
-                        rm -rf ${WORK_DIR}
-                        git clone -b master ${TERRAFORM_REPO} ${WORK_DIR}
-                    fi
+                    [ -d "${WORK_DIR}/.git" ] && (cd ${WORK_DIR} && git reset --hard && git pull origin master) || (rm -rf ${WORK_DIR} && git clone -b master ${TERRAFORM_REPO} ${WORK_DIR})
 EOF
                     """
                 }
             }
         }
 
-        stage('Terraform Init & Apply') {
+        stage('Terraform Apply') {
             steps {
                 script {
-                    echo "Initializing and applying Terraform..."
                     sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
                     cd ${WORK_DIR}/terraform
-                    terraform init
-                    terraform validate
-                    terraform plan -out=tfplan
-                    terraform apply -auto-approve
+                    terraform init && terraform validate && terraform plan -out=tfplan && terraform apply -auto-approve
 EOF
                     """
                 }
@@ -86,17 +62,14 @@ EOF
         stage('Fetch Terraform Instance IP') {
             steps {
                 script {
-                    echo "Fetching the instance IP from Terraform..."
-                    def instanceIP = sh(script: """
+                    env.INSTANCE_IP = sh(script: """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
                     cd ${WORK_DIR}/terraform
                     terraform output -raw instance_ip
 EOF
                     """, returnStdout: true).trim()
-
-                    echo "Terraform-created instance IP: ${instanceIP}"
-                    env.INSTANCE_IP = instanceIP  // Store IP for Ansible use
+                    echo "Terraform-created instance IP: ${env.INSTANCE_IP}"
                 }
             }
         }
@@ -104,13 +77,24 @@ EOF
         stage('Setup Ansible on Terraform Instance') {
             steps {
                 script {
-                    echo "Installing Ansible on the Terraform instance..."
                     sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
-                    sudo apt update
-                    sudo apt install -y ansible
+                    sudo apt update && sudo apt install -y ansible
 EOF
+                    """
+                }
+            }
+        }
+
+        stage('Generate & Copy Ansible Inventory') {
+            steps {
+                script {
+                    sh """
+                    echo "[servers]
+                    terraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" > ansible/inventory.ini
+
+                    scp -o StrictHostKeyChecking=no ansible/inventory.ini ${TERRAFORM_INSTANCE}:${WORK_DIR}/ansible/
                     """
                 }
             }
@@ -119,12 +103,11 @@ EOF
         stage('Run Ansible Playbook') {
             steps {
                 script {
-                    echo "Running Ansible playbook..."
                     sh """
                     ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
                     set -e
                     cd ${WORK_DIR}/ansible
-                    ansible-playbook -i inventory ${ANSIBLE_PLAYBOOK}
+                    ansible-playbook -i inventory.ini ${ANSIBLE_PLAYBOOK}
 EOF
                     """
                 }
@@ -134,19 +117,15 @@ EOF
 
     post {
         always {
-            echo "Cleaning up workspace..."
             cleanWs()
         }
-
         success {
             echo "Pipeline completed successfully!"
         }
-
         failure {
             echo "Pipeline failed. Check logs for details."
         }
     }
 }
-
 
 
