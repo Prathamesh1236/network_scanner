@@ -74,16 +74,6 @@ EOF
             }
         }
 
-        stage('Setup Ansible on Jenkins') {
-            steps {
-                script {
-                    sh """
-                    sudo apt update && sudo apt install -y ansible
-                    """
-                }
-            }
-        }
-
         stage('Generate Ansible Inventory') {
             steps {
                 script {
@@ -116,5 +106,4 @@ EOF
         }
     }
 }
-
 
