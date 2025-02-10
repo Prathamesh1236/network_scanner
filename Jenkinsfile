@@ -6,7 +6,7 @@ pipeline {
         DOCKER_REGISTRY = 'prathamesh05'
         IMAGE_TAG = 'latest'
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
-        TERRAFORM_INSTANCE = 'admin@3.110.183.103'
+        TERRAFORM_INSTANCE = 'admin@13.235.77.188'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
         WORK_DIR = '/home/admin/network_scanner'  // Full path
     }
@@ -94,22 +94,7 @@ EOF
 EOF
                     """, returnStdout: true).trim()
 
-                    echo "Instance IP: ${instanceIP}"
-
-                    // Write instance IP to inventory file
-                    writeFile file: 'inventory.ini', text: """
-                    [web]
-                    ${instanceIP} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa
-                    """
-                }
-            }
-        }
-
-        stage('Run Ansible Playbook') {
-            steps {
-                script {
-                    echo "Running Ansible Playbook..."
-                    sh 'ansible-playbook -i inventory.ini playbook.yml'
+                    echo "Terraform-created instance IP: ${instanceIP}"
                 }
             }
         }
