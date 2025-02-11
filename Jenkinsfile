@@ -53,7 +53,7 @@ EOF
                     set -ex
                     cd ${WORK_DIR}/terraform
                     terraform init
-                    terraform destroy -auto-approve  # First, destroy existing resources
+                    terraform destroy -auto-approve  # Destroy existing resources
                     terraform validate
                     terraform plan -out=tfplan
                     terraform apply -auto-approve    # Recreate resources
@@ -66,15 +66,12 @@ EOF
         stage('Fetch Terraform Instance IP') {
             steps {
                 script {
-                    // Fetch only the raw instance IP from Terraform output
                     env.INSTANCE_IP = sh(script: """
                         ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} "cd ${WORK_DIR}/terraform && terraform output -raw instance_ip"
                     """, returnStdout: true).trim()
 
-                    // Debugging: Print the fetched IP
                     echo "Fetched Terraform Instance IP: '${env.INSTANCE_IP}'"
 
-                    // Fail the pipeline if the IP is empty
                     if (!env.INSTANCE_IP?.trim()) {
                         error("Failed to fetch Terraform instance IP. It is empty or undefined.")
                     }
@@ -85,13 +82,10 @@ EOF
         stage('Generate Ansible Inventory') {
             steps {
                 script {
-                    // Generate the Ansible inventory file
                     sh """
                         echo "[webserver]" > ansible/inventory.ini
-                        echo "${env.INSTANCE_IP} ansible_user=admin" >> ansible/inventory.ini
+                        echo "${env.INSTANCE_IP} ansible_user=admin ansible_ssh_common_args='-o StrictHostKeyChecking=no'" >> ansible/inventory.ini
                     """
-
-                    // Debugging: Print the inventory file content
                     sh "cat ansible/inventory.ini"
                 }
             }
@@ -100,7 +94,6 @@ EOF
         stage('Verify Playbook Exists') {
             steps {
                 script {
-                    // Verify the Ansible playbook exists
                     sh """
                         if [ ! -f ${ANSIBLE_PLAYBOOK} ]; then
                             echo "ERROR: Playbook ${ANSIBLE_PLAYBOOK} not found!"
@@ -115,8 +108,7 @@ EOF
         stage('Run Ansible Playbook from Jenkins') {
             steps {
                 script {
-                    // Run the Ansible playbook
-                    sh "ansible-playbook -i ansible/inventory.ini ${ANSIBLE_PLAYBOOK}"
+                    sh "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ansible/inventory.ini ${ANSIBLE_PLAYBOOK}"
                 }
             }
         }
