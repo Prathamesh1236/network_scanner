@@ -66,13 +66,9 @@ EOF
         stage('Fetch Terraform Instance IP') {
             steps {
                 script {
-                    // Fetch the instance IP from Terraform output
+                    // Fetch only the raw instance IP from Terraform output
                     env.INSTANCE_IP = sh(script: """
-                        ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
-                        set -e
-                        cd ${WORK_DIR}/terraform
-                        terraform output -raw instance_ip
-EOF
+                        ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} "cd ${WORK_DIR}/terraform && terraform output -raw instance_ip"
                     """, returnStdout: true).trim()
 
                     // Debugging: Print the fetched IP
@@ -91,10 +87,8 @@ EOF
                 script {
                     // Generate the Ansible inventory file
                     sh """
-                        cat <<EOF >ansible/inventory.ini
-                        [webserver]
-                        ${env.INSTANCE_IP} ansible_user=admin
-EOF
+                        echo "[webserver]" > ansible/inventory.ini
+                        echo "${env.INSTANCE_IP} ansible_user=admin" >> ansible/inventory.ini
                     """
 
                     // Debugging: Print the inventory file content
