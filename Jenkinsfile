@@ -10,7 +10,6 @@ pipeline {
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
         WORK_DIR = '/home/admin/network_scanner'
         ANSIBLE_PLAYBOOK = '/var/lib/jenkins/workspace/network_scanner/ansible/setup_server.yml'
-        SECURITY_GROUP_NAME = 'flask-app-sg'
     }
 
     stages {
@@ -67,14 +66,22 @@ EOF
         stage('Fetch Terraform Instance IP') {
             steps {
                 script {
+                    // Fetch the instance IP from Terraform output
                     env.INSTANCE_IP = sh(script: """
-                    ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
-                    set -e
-                    cd ${WORK_DIR}/terraform
-                    terraform output -raw instance_ip
+                        ssh -o StrictHostKeyChecking=no ${TERRAFORM_INSTANCE} <<EOF
+                        set -e
+                        cd ${WORK_DIR}/terraform
+                        terraform output -raw instance_ip
 EOF
                     """, returnStdout: true).trim()
-                    echo "Terraform-created instance IP: ${env.INSTANCE_IP}"
+
+                    // Debugging: Print the fetched IP
+                    echo "Fetched Terraform Instance IP: '${env.INSTANCE_IP}'"
+
+                    // Fail the pipeline if the IP is empty
+                    if (!env.INSTANCE_IP?.trim()) {
+                        error("Failed to fetch Terraform instance IP. It is empty or undefined.")
+                    }
                 }
             }
         }
@@ -82,9 +89,15 @@ EOF
         stage('Generate Ansible Inventory') {
             steps {
                 script {
+                    // Generate the Ansible inventory file
                     sh """
-                    echo -e "[webserver]\\n${env.INSTANCE_IP} ansible_user=admin" > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
+                        cat <<EOF > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
+                        [webserver]
+                        ${env.INSTANCE_IP} ansible_user=admin
+EOF
                     """
+
+                    // Debugging: Print the inventory file content
                     sh "cat /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini"
                 }
             }
@@ -93,12 +106,13 @@ EOF
         stage('Verify Playbook Exists') {
             steps {
                 script {
+                    // Verify the Ansible playbook exists
                     sh """
-                    if [ ! -f ${ANSIBLE_PLAYBOOK} ]; then
-                        echo "ERROR: Playbook ${ANSIBLE_PLAYBOOK} not found!"
-                        exit 1
-                    fi
-                    ls -l ${ANSIBLE_PLAYBOOK}
+                        if [ ! -f ${ANSIBLE_PLAYBOOK} ]; then
+                            echo "ERROR: Playbook ${ANSIBLE_PLAYBOOK} not found!"
+                            exit 1
+                        fi
+                        ls -l ${ANSIBLE_PLAYBOOK}
                     """
                 }
             }
@@ -107,6 +121,7 @@ EOF
         stage('Run Ansible Playbook from Jenkins') {
             steps {
                 script {
+                    // Run the Ansible playbook
                     sh "ansible-playbook -i /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini ${ANSIBLE_PLAYBOOK}"
                 }
             }
