@@ -2,8 +2,8 @@
 - name: Setup and Deploy Network Scanner Application
   hosts: all
   become: yes
-  tasks:
 
+  tasks:
     - name: Update and upgrade packages
       apt:
         update_cache: yes
@@ -11,7 +11,7 @@
 
     - name: Install required packages
       apt:
-        name: 
+        name:
           - docker.io
           - docker-compose
         state: present
@@ -31,11 +31,7 @@
     - name: Pull latest Docker image
       command: docker pull prathamesh05/network_scanner:latest
 
-    - name: Remove existing container (if running)
-      command: docker rm -f network_scanner
-      ignore_errors: yes  # Ignore errors if container does not exist
-
-    - name: Run Docker container with privileged mode
+    - name: Run Docker container
       command: >
         docker run --privileged -d --name network_scanner
         -p 5000:5000 prathamesh05/network_scanner:latest
@@ -44,6 +40,6 @@
       command: docker ps
       register: container_status
 
-    - debug:
+    - name: Display container status
+      debug:
         var: container_status.stdout_lines
-
