@@ -69,7 +69,6 @@ resource "aws_instance" "flask_app" {
     echo "Adding Jenkins SSH key..."
     mkdir -p /home/admin/.ssh
     echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQChNw9bGozFgbOQrvX1U9fGFK7cSgPZrP8pEhy08SYqY9SZUp86ViS+WeBVFMkFWz10JRmQSH2ztqc7NLM2gtuEeswXQJGXd4KRbDhYjeKp6yd5ZKz2e6skvnYEAPhmswgdBCp1uBecZW5rTlhwWMlWApHqKFCCvjDy/lG/LMsFR9QUhCSm5v5fpISLcQgxsYqTYH6X//V24pfOdGQtGviQMbcaWQKrNsP6HAzcnlwPYWPQp5isd2JhWvum/s7MjGqfcdwHD/gO0MaOlKZ2dFMc6XOclxx/w/dVV01fE3jN+eq4o4roQ1IH+AU/GnZIrMD4NKyqWYnqIZQ0DUpoNVENm8JqEJTcFB3DcyCTKuTh+Goy5K8Y7ndmuMsQTL74a47UCp8Aw5PUkE2cWnNWAxGoMuI1ngi/WbDSWY+udwHYtEx1vGX58sbkUm58ZxqLV1m+1We/8ngFtNrfr/tRcwV6l4nF+O8VGNjULjSQ7DpQYZYYB13CFH+4OOTAFqWUaSs= jenkins@ip-172-31-5-128
-" >> /home/admin/.ssh/authorized_keys
     chmod 600 /home/admin/.ssh/authorized_keys
     chown -R admin:admin /home/admin/.ssh
   EOF
