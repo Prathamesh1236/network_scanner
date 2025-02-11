@@ -29,20 +29,20 @@ resource "aws_security_group" "flask_sg" {
   name        = "flask-app-sg"
   description = "Allow SSH and Flask app HTTP traffic"
 
-  # Restrict SSH to YOUR public IP (Replace 43.204.112.21 with actual IP)
+  # Restrict SSH to your public IP (Replace <YOUR_PUBLIC_IP>)
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Allow SSH only from your machine
+    cidr_blocks = ["<YOUR_PUBLIC_IP>/32"]  # Restrict SSH only to your machine
   }
 
-  # Flask app port (5000) - Open for testing (Restrict in production)
+  # Flask app port (5000) - Allow only your IP (Change later for production)
   ingress {
     from_port   = 5000
     to_port     = 5000
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # Allow all for testing (Restrict later)
+    cidr_blocks = ["<YOUR_PUBLIC_IP>/32"]  # Restrict Flask access to your IP
   }
 
   # Allow all outbound traffic
@@ -67,10 +67,14 @@ resource "aws_instance" "flask_app" {
   user_data = <<-EOF
     #!/bin/bash
     echo "Adding Jenkins SSH key..."
-    mkdir -p /home/admin/.ssh
-    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQChNw9bGozFgbOQrvX1U9fGFK7cSgPZrP8pEhy08SYqY9SZUp86ViS+WeBVFMkFWz10JRmQSH2ztqc7NLM2gtuEeswXQJGXd4KRbDhYjeKp6yd5ZKz2e6skvnYEAPhmswgdBCp1uBecZW5rTlhwWMlWApHqKFCCvjDy/lG/LMsFR9QUhCSm5v5fpISLcQgxsYqTYH6X//V24pfOdGQtGviQMbcaWQKrNsP6HAzcnlwPYWPQp5isd2JhWvum/s7MjGqfcdwHD/gO0MaOlKZ2dFMc6XOclxx/w/dVV01fE3jN+eq4o4roQ1IH+AU/GnZIrMD4NKyqWYnqIZQ0DUpoNVENm8JqEJTcFB3DcyCTKuTh+Goy5K8Y7ndmuMsQTL74a47UCp8Aw5PUkE2cWnNWAxGoMuI1ngi/WbDSWY+udwHYtEx1vGX58sbkUm58ZxqLV1m+1We/8ngFtNrfr/tRcwV6l4nF+O8VGNjULjSQ7DpQYZYYB13CFH+4OOTAFqWUaSs= jenkins@ip-172-31-5-128
-    chmod 600 /home/admin/.ssh/authorized_keys
-    chown -R admin:admin /home/admin/.ssh
+    USER=$(whoami)
+    HOME_DIR=$(eval echo ~$USER)
+
+    mkdir -p $HOME_DIR/.ssh
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQChNw9bGozFgbOQrvX1U9fGFK7cSgPZrP8pEhy08SYqY9SZUp86ViS+WeBVFMkFWz10JRmQSH2ztqc7NLM2gtuEeswXQJGXd4KRbDhYjeKp6yd5ZKz2e6skvnYEAPhmswgdBCp1uBecZW5rTlhwWMlWApHqKFCCvjDy/lG/LMsFR9QUhCSm5v5fpISLcQgxsYqTYH6X//V24pfOdGQtGviQMbcaWQKrNsP6HAzcnlwPYWPQp5isd2JhWvum/s7MjGqfcdwHD/gO0MaOlKZ2dFMc6XOclxx/w/dVV01fE3jN+eq4o4roQ1IH+AU/GnZIrMD4NKyqWYnqIZQ0DUpoNVENm8JqEJTcFB3DcyCTKuTh+Goy5K8Y7ndmuMsQTL74a47UCp8Aw5PUkE2cWnNWAxGoMuI1ngi/WbDSWY+udwHYtEx1vGX58sbkUm58ZxqLV1m+1We/8ngFtNrfr/tRcwV6l4nF+O8VGNjULjSQ7DpQYZYYB13CFH+4OOTAFqWUaSs= jenkins@ip-172-31-5-128" >> $HOME_DIR/.ssh/authorized_keys
+
+    chmod 600 $HOME_DIR/.ssh/authorized_keys
+    chown -R $USER:$USER $HOME_DIR/.ssh
   EOF
 
   tags = {
@@ -82,4 +86,3 @@ resource "aws_instance" "flask_app" {
 output "instance_ip" {
   value = aws_instance.flask_app.public_ip
 }
-
