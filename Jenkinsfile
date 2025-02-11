@@ -9,7 +9,7 @@ pipeline {
         TERRAFORM_INSTANCE = 'admin@13.201.101.108'
         TERRAFORM_REPO = 'https://github.com/Prathamesh1236/network_scanner.git'
         WORK_DIR = '/home/admin/network_scanner'
-        ANSIBLE_PLAYBOOK = '/var/lib/jenkins/workspace/network_scanner/ansible/setup_server.yml'
+        ANSIBLE_PLAYBOOK = 'ansible/setup_server.yml'
     }
 
     stages {
@@ -91,14 +91,14 @@ EOF
                 script {
                     // Generate the Ansible inventory file
                     sh """
-                        cat <<EOF > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
+                        cat <<EOF >ansible/inventory.ini
                         [webserver]
                         ${env.INSTANCE_IP} ansible_user=admin
 EOF
                     """
 
                     // Debugging: Print the inventory file content
-                    sh "cat /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini"
+                    sh "cat ansible/inventory.ini"
                 }
             }
         }
@@ -122,7 +122,7 @@ EOF
             steps {
                 script {
                     // Run the Ansible playbook
-                    sh "ansible-playbook -i /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini ${ANSIBLE_PLAYBOOK}"
+                    sh "ansible-playbook -i ansible/inventory.ini ${ANSIBLE_PLAYBOOK}"
                 }
             }
         }
