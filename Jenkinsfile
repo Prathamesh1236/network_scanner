@@ -82,12 +82,10 @@ EOF
         stage('Generate Ansible Inventory') {
             steps {
                 script {
-                    def invFile = "/var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini"
-                    // Generate the inventory file in one line to ensure proper interpolation.
-                    sh "echo -e \"[servers]\\nterraform_instance ansible_host=${env.INSTANCE_IP} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa\" > ${invFile}"
-                    // Use sed to remove DOS-style carriage returns; note the dollar sign is now escaped.
-                    sh "sed -i 's/\\r\\$//' ${invFile}"
-                    sh "cat ${invFile}"
+                    sh """
+                    echo -e "[webserver]\\n${env.INSTANCE_IP} ansible_user=admin" > /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini
+                    """
+                    sh "cat /var/lib/jenkins/workspace/network_scanner/ansible/inventory.ini"
                 }
             }
         }
