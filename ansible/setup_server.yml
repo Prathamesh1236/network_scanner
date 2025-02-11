@@ -31,9 +31,13 @@
     - name: Pull latest Docker image
       command: docker pull prathamesh05/network_scanner:latest
 
-    - name: Run Docker container
+    - name: Remove existing container (if running)
+      command: docker rm -f network_scanner
+      ignore_errors: yes  # Ignore errors if container does not exist
+
+    - name: Run Docker container with privileged mode
       command: >
-        docker run -d --name network_scanner
+        docker run --privileged -d --name network_scanner
         -p 5000:5000 prathamesh05/network_scanner:latest
 
     - name: Verify container is running
