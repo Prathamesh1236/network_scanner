@@ -34,7 +34,7 @@ resource "aws_security_group" "flask_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["<YOUR_PUBLIC_IP>/32"]  # Restrict SSH only to your machine
+    cidr_blocks = ["0.0.0.0/0"]  # Restrict SSH only to your machine
   }
 
   # Flask app port (5000) - Allow only your IP (Change later for production)
@@ -42,7 +42,7 @@ resource "aws_security_group" "flask_sg" {
     from_port   = 5000
     to_port     = 5000
     protocol    = "tcp"
-    cidr_blocks = ["<YOUR_PUBLIC_IP>/32"]  # Restrict Flask access to your IP
+    cidr_blocks = ["0.0.0.0/0"]  # Restrict Flask access to your IP
   }
 
   # Allow all outbound traffic
