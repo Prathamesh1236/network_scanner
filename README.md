@@ -41,10 +41,8 @@ For minimal but functional security, configure the **"developer"** security grou
 
 ### 2. Connect to the Developer Machine
 
-#### **For Linux/Mac Users:**
-```bash
-ssh -i /path/to/developer_key.pem admin@<EC2_PUBLIC_IP>
-```
+
+`
 
 #### **For Windows Users (PuTTY):**
 1. Convert `.pem` to `.ppk` using **PuTTYgen**.
