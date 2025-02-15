@@ -67,7 +67,7 @@ cd network_scanner
 ### 5. Generate SSH Key and Add to GitHub
 #### **Step 1: Generate SSH Key (if not already done)**
 ```bash
-ssh-keygen 
+ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 ```
 - Press **Enter** to save the key in the default location (`~/.ssh/id_rsa`).
 - Enter a secure **passphrase** (optional but recommended).
@@ -83,7 +83,7 @@ Copy the output of this command.
 2. Set a repository name (e.g., `my_network_scanner`).
 3. Choose **Private/Public** based on your preference.
 4. Click **Create Repository**.
-5. Go to **Settings → Security → Deploy Keys**.
+5. Go to **Settings → Deploy Keys** of your newly created repository.
 6. Click **Add Deploy Key**.
 7. Paste the copied key into the **Key** field.
 8. Click **Add Key**.
@@ -98,13 +98,69 @@ git remote add origin git@github.com:YOUR_GITHUB_USERNAME/my_network_scanner.git
 ```
 
 ```bash
-git branch -M main
+git branch -M master
 ```
 
 ```bash
-git push -u origin main
+git push -u origin master
 ```
 
 Now your cloned project is pushed to your **own** GitHub repository! 🎉
 
+---
+
+## 7. Setting Up Jenkins on the Jenkins Instance
+
+### **Step 1: Install Java (Required for Jenkins)**
+```bash
+sudo apt update
+sudo apt install openjdk-11-jdk -y
+```
+Verify Java installation:
+```bash
+java -version
+```
+
+### **Step 2: Install Jenkins**
+```bash
+wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+```
+
+```bash
+echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+```
+
+```bash
+sudo apt update
+sudo apt install jenkins -y
+```
+
+### **Step 3: Start and Enable Jenkins Service**
+```bash
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+```
+
+### **Step 4: Configure Firewall (If UFW is enabled)**
+```bash
+sudo ufw allow 8080
+sudo ufw reload
+```
+
+### **Step 5: Retrieve Initial Jenkins Admin Password**
+```bash
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+```
+Copy the output and save it.
+
+### **Step 6: Access Jenkins Web Interface**
+1. Open a browser and go to:
+   ```
+   http://<JENKINS_INSTANCE_PUBLIC_IP>:8080
+   ```
+2. Enter the **initial admin password** copied from Step 5.
+3. Follow the on-screen instructions to install recommended plugins.
+4. Create an **admin user** and finish setup.
+
+Jenkins is now successfully installed and ready to use! ✅
 
