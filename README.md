@@ -1,7 +1,7 @@
-  # Intelligent Network Scanner with Automated Deployment
+# Intelligent Network Scanner with Automated Deployment
 
 ## Overview
-**Intelligent Network Scanner with Automated Deployment** is a fully automated network scanning solution that leverages modern DevOps tools to streamline network security assessments. The system dynamically provisions and deploys the network scanner application while providing a Flask-based web interface for real-time scan results and analysis.
+**Intelligent Network Scanner with Automated Deployment** is a fully automated network scanning solution that leverages modern DevOps tools to streamline network security assessments. The system dynamically provisions and deploys the network scanner application while providing a Flask-based web interface for real-time scan results and analysis. This project significantly reduces manual intervention while enhancing scalability, consistency, and security.
 
 ## System Requirements and Machine Setup
 This project requires three machines (using AWS Free Tier):
@@ -10,39 +10,32 @@ This project requires three machines (using AWS Free Tier):
   Used for writing, testing, and committing code.
 
 - **Jenkins Machine:**  
-  Runs the CI/CD pipeline. It builds Docker images, triggers deployments, and orchestrates the process.
+  Dedicated to running the CI/CD pipeline. This machine builds Docker images, triggers deployments, and orchestrates the overall process.
 
-- **Terraform Machine:**  
-  (For manual setup, you can opt not to use Terraform and configure AWS instances manually if preferred.)  
+- **Terraform Machine (Optional):**  
+  You can provision AWS infrastructure manually if desired. (In our case, we focus on manual setup for the Developer and Jenkins machines.)
 
-For our minimal development setup, we focus on the Developer and Jenkins machines.
+## Security Groups Setup
+For simplicity during development, you can use minimal security settings with dedicated security groups named according to their roles:
 
-## Minimal Security Group Setup (Development Environment)
-For ease of use during development, you can create a security group with minimal restrictions. **Note:** This setup is for testing only.
+- **Developer Security Group ("developer"):**
+  - **Inbound Rules:**
+    - **SSH (Port 22):** Allow from `0.0.0.0/0` (for easy access during development).
+    - **Flask (Port 5000):** Allow from `0.0.0.0/0` (to access the web interface).
+  - **Outbound Rules:** Allow all traffic (default).
 
-1. **Log in to the AWS Management Console** and navigate to the EC2 Dashboard > Security Groups.
-2. **Create a new security group** with the following settings:
-   - **Name:** `minimal-dev-sg`
-   - **Description:** "Minimal security group for development/testing purposes."
-   - **Inbound Rules:**
-     - **SSH (Port 22):**  
-       - Protocol: TCP  
-       - Port Range: 22  
-       - Source: `0.0.0.0/0`
-     - **Jenkins (Port 8080):**  
-       - Protocol: TCP  
-       - Port Range: 8080  
-       - Source: `0.0.0.0/0`
-     - **Flask (Port 5000):**  
-       - Protocol: TCP  
-       - Port Range: 5000  
-       - Source: `0.0.0.0/0`
-   - **Outbound Rules:** Allow all traffic (default).
-3. **Assign this security group** to your Jenkins and Developer EC2 instances.
+- **Jenkins Security Group ("jenkins"):**
+  - **Inbound Rules:**
+    - **SSH (Port 22):** Allow from `0.0.0.0/0`.
+    - **Jenkins (Port 8080):** Allow from `0.0.0.0/0` (for accessing the Jenkins web interface).
+  - **Outbound Rules:** Allow all traffic (default).
+
+*Note: These settings are for development purposes only. For production, restrict inbound access to specific IP addresses.*
 
 ## Installation and Setup
 
 ### 1. Clone the Repository
+Clone the project repository to your local machine:
 ```bash
 git clone https://github.com/yourusername/intelligent-network-scanner.git
 cd intelligent-network-scanner
