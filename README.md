@@ -67,7 +67,7 @@ cd network_scanner
 ### 5. Generate SSH Key and Add to GitHub
 #### **Step 1: Generate SSH Key (if not already done)**
 ```bash
-ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+ssh-keygen 
 ```
 - Press **Enter** to save the key in the default location (`~/.ssh/id_rsa`).
 - Enter a secure **passphrase** (optional but recommended).
