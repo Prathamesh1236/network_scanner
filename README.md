@@ -98,11 +98,11 @@ git remote add origin git@github.com:YOUR_GITHUB_USERNAME/my_network_scanner.git
 ```
 
 ```bash
-git branch -M master
+git branch -M main
 ```
 
 ```bash
-git push -u origin master
+git push -u origin main
 ```
 
 Now your cloned project is pushed to your **own** GitHub repository! 🎉
@@ -163,4 +163,37 @@ Copy the output and save it.
 4. Create an **admin user** and finish setup.
 
 Jenkins is now successfully installed and ready to use! ✅
+
+---
+
+## 8. Setting Up a Webhook to Trigger Jenkins on GitHub Push
+
+### **What is a Webhook?**
+A **GitHub Webhook** is a way to notify Jenkins when a new commit is pushed to the repository. When a change is made, GitHub sends an HTTP POST request to Jenkins, triggering an automated build.
+
+### **Step 1: Install GitHub Plugin in Jenkins**
+1. Log in to **Jenkins**.
+2. Go to **Manage Jenkins → Manage Plugins**.
+3. In the **Available** tab, search for **GitHub Plugin**.
+4. Select it and click **Install Without Restart**.
+
+### **Step 2: Configure Webhook in GitHub**
+1. Go to your **GitHub Repository → Settings → Webhooks**.
+2. Click **Add Webhook**.
+3. In the **Payload URL**, enter:
+   ```
+   http://<JENKINS_PUBLIC_IP>:8080/github-webhook/
+   ```
+4. Set **Content Type** to `application/json`.
+5. Choose **Just the push event**.
+6. Click **Add Webhook**.
+
+### **Step 3: Test the Webhook**
+```bash
+echo "Test Webhook" >> test.txt
+git add test.txt
+git commit -m "Testing GitHub Webhook for Jenkins"
+git push origin main
+```
+Now Jenkins should trigger a build automatically! 🚀
 
