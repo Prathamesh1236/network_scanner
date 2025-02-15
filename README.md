@@ -1,43 +1,39 @@
 # Intelligent Network Scanner with Automated Deployment
 
-## Overview
-**Intelligent Network Scanner with Automated Deployment** is a fully automated network scanning solution that leverages modern DevOps tools to streamline network security assessments. The system dynamically provisions and deploys the network scanner application while providing a Flask-based web interface for real-time scan results and analysis. This approach significantly reduces manual intervention and enhances scalability, consistency, and security.
+## Developer Machine Setup
 
-## System Requirements and Machine Setup
-This project requires three distinct machines (using AWS Free Tier):
+**Overview:**  
+The Developer machine is used solely for code development, testing, and committing changes to the project repository. This machine is provisioned on AWS as a Free Tier t2.micro instance running Debian. It is configured with a dedicated security group (named "developer") that allows inbound SSH (for remote access via PuTTY) and, if necessary, Flask (port 5000) for accessing the web interface.
 
-- **Developer Machine:**  
-  Used for writing, testing, and committing code. This machine will primarily be used to push changes to GitHub.
-  
-- **Jenkins Machine:**  
-  Dedicated to running the CI/CD pipeline. This machine builds Docker images, triggers deployments, and orchestrates the overall automation process.
-  
-- **Terraform Machine:**  
-  (Optional for manual setups) Typically used for provisioning and managing AWS infrastructure. In this guide, the focus is on manually setting up the Developer and Jenkins machines.
+### Instance Details
+- **Instance Name:** developer
+- **OS Image:** Debian (Free Tier eligible)
+- **Instance Type:** t2.micro
+- **Key Pair:** `developer_key` (RSA key generated using `ssh-keygen`; store as a PEM file or convert to .ppk for PuTTY)
 
-## Security Groups Setup
-
-For ease of development, we use minimal security settings. **Note:** This configuration is intended for development/testing only. In production, you should restrict inbound traffic to known IP ranges.
-
-### Developer Security Group ("developer")
+### Security Group Configuration for Developer Machine ("developer")
+Since the Developer machine is used for code commits and remote management, the following minimal security settings are recommended for development purposes:
 - **Inbound Rules:**
-  - **SSH (Port 22):** Allow TCP from `0.0.0.0/0` (to connect using PuTTY or another SSH client).
-  - **Flask (Port 5000):** Allow TCP from `0.0.0.0/0` (to access the web interface).
+  - **SSH (Port 22):** Allow TCP from `0.0.0.0/0` (for ease of access via PuTTY; for enhanced security, restrict to your IP range).
+  - **Flask (Port 5000):** Allow TCP from `0.0.0.0/0` if you need external access to the web interface.
 - **Outbound Rules:**
   - Allow all outbound traffic (default).
 
-### Jenkins Security Group ("jenkins")
-- **Inbound Rules:**
-  - **SSH (Port 22):** Allow TCP from `0.0.0.0/0` (or restrict to your IP range for increased security).
-  - **Jenkins (Port 8080):** Allow TCP from `0.0.0.0/0` (to access the Jenkins web interface).
-- **Outbound Rules:**
-  - Allow all outbound traffic (default).
+### Steps to Set Up Your Developer Machine
 
-## Installation and Setup
+#### 1. Launch the EC2 Instance
+- **Log in to the AWS Management Console** and navigate to the **EC2 Dashboard**.
+- Click **Launch Instance**.
+- **Select the AMI:** Choose a Debian AMI (ensuring Free Tier eligibility).
+- **Choose Instance Type:** Select **t2.micro**.
+- **Name Your Instance:** Set the name to **developer**.
+- **Key Pair:** Create or select a key pair named `developer_key`. Download and store the private key securely.
+- **Assign Security Group:** Associate this instance with your "developer" security group.
+- Click **Launch**.
 
-### 1. Clone the Repository
-Clone the project repository to your local machine:
+#### 2. Generate SSH Keys (if not already done)
+If you haven't generated your RSA key pair:
 ```bash
-git clone https://github.com/yourusername/intelligent-network-scanner.git
-cd intelligent-network-scanner
+ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+
 
