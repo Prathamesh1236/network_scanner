@@ -41,6 +41,10 @@ For minimal but functional security, configure the **"developer"** security grou
 
 ### 2. Connect to the Developer Machine
 
+#### **For Linux/Mac Users:**
+```bash
+ssh -i /path/to/developer_key.pem admin@<EC2_PUBLIC_IP>
+```
 
 #### **For Windows Users (PuTTY):**
 1. Convert `.pem` to `.ppk` using **PuTTYgen**.
@@ -60,7 +64,27 @@ git clone https://github.com/Prathamesh1236/network_scanner.git
 cd network_scanner
 ```
 
-### 5. Create Your Own GitHub Repository and Push Cloned Code
+### 5. Generate SSH Key and Add to GitHub
+#### **Step 1: Generate SSH Key (if not already done)**
+```bash
+ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+```
+- Press **Enter** to save the key in the default location (`~/.ssh/id_rsa`).
+- Enter a secure **passphrase** (optional but recommended).
+
+#### **Step 2: Copy the Public Key**
+```bash
+cat ~/.ssh/id_rsa.pub
+```
+Copy the output of this command.
+
+#### **Step 3: Add SSH Key to GitHub**
+1. Go to **GitHub → Settings → Security → Deploy Keys**.
+2. Click **New SSH Key**.
+3. Paste the copied key into the **Key** field.
+4. Click **Add SSH Key**.
+
+### 6. Create Your Own GitHub Repository and Push Cloned Code
 
 #### **Step 1: Create a New Repository on GitHub**
 1. Log in to your GitHub account.
@@ -75,7 +99,7 @@ git remote remove origin  # Remove the existing remote repository
 ```
 
 ```bash
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/my_network_scanner.git
+git remote add origin git@github.com:YOUR_GITHUB_USERNAME/my_network_scanner.git
 ```
 
 ```bash
@@ -87,4 +111,5 @@ git push -u origin master
 ```
 
 Now your cloned project is pushed to your **own** GitHub repository! 🎉
+
 
